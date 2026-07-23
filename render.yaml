@@ -1,0 +1,35 @@
+services:
+  - type: web
+    name: nk-consulting-api
+    runtime: node
+    buildCommand: cd backend && npm install
+    startCommand: cd backend && node server.js
+    envVars:
+      - key: NODE_VERSION
+        value: 18.0.0
+      - key: DB_HOST
+        fromDatabase:
+          name: nk-consulting-db
+          property: host
+      - key: DB_PORT
+        fromDatabase:
+          name: nk-consulting-db
+          property: port
+      - key: DB_USER
+        fromDatabase:
+          name: nk-consulting-db
+          property: user
+      - key: DB_PASSWORD
+        fromDatabase:
+          name: nk-consulting-db
+          property: password
+      - key: DB_NAME
+        fromDatabase:
+          name: nk-consulting-db
+          property: database
+      - key: JWT_SECRET
+        generateValue: true
+
+databases:
+  - name: nk-consulting-db
+    plan: free
