@@ -7,6 +7,7 @@ console.log('DB_PORT:', process.env.DB_PORT);
 console.log('DB_NAME:', process.env.DB_NAME);
 console.log('DB_USER:', process.env.DB_USER);
 
+// Configuration pour Render PostgreSQL
 const pool = new Pool({
   host: process.env.DB_HOST,
   port: parseInt(process.env.DB_PORT) || 5432,
@@ -14,11 +15,11 @@ const pool = new Pool({
   password: process.env.DB_PASSWORD,
   database: process.env.DB_NAME,
   ssl: {
-    rejectUnauthorized: false
+    rejectUnauthorized: false,  // 👈 ESSENTIEL pour Render
   },
   max: 20,
   idleTimeoutMillis: 30000,
-  connectionTimeoutMillis: 5000,
+  connectionTimeoutMillis: 10000,
 });
 
 // Tester la connexion
@@ -29,6 +30,7 @@ pool.connect((err, client, release) => {
     console.error('❌ Database:', process.env.DB_NAME);
   } else {
     console.log('✅ Connexion à PostgreSQL réussie !');
+    console.log('📦 Base de données:', process.env.DB_NAME);
     release();
   }
 });
