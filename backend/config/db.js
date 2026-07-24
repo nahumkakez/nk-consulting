@@ -2,13 +2,16 @@ const { Pool } = require('pg');
 require('dotenv').config();
 
 console.log('🔧 Configuration DB:');
+console.log('NODE_ENV:', process.env.NODE_ENV || 'development');
 console.log('DB_HOST:', process.env.DB_HOST || 'localhost');
 console.log('DB_PORT:', process.env.DB_PORT || 5432);
 console.log('DB_NAME:', process.env.DB_NAME || 'nk_consulting_db');
 console.log('DB_USER:', process.env.DB_USER || 'postgres');
 
-// Détecter si on est sur Render ou en local
-const isProduction = process.env.DB_HOST && process.env.DB_HOST.includes('render.com');
+// Détecter si on est en production (Render)
+const isProduction = process.env.NODE_ENV === 'production';
+
+console.log('🌍 Mode production:', isProduction);
 
 // Configuration adaptée
 const pool = new Pool({
@@ -17,7 +20,7 @@ const pool = new Pool({
   user: process.env.DB_USER || 'postgres',
   password: process.env.DB_PASSWORD || 'admin123',
   database: process.env.DB_NAME || 'nk_consulting_db',
-  // IMPORTANT: SSL UNIQUEMENT en production !
+  // SSL UNIQUEMENT en production (Render)
   ssl: isProduction ? { rejectUnauthorized: false } : false,
   max: 20,
   idleTimeoutMillis: 30000,
@@ -30,6 +33,9 @@ pool.connect((err, client, release) => {
     console.error('❌ Erreur de connexion à PostgreSQL:', err.message);
     console.error('💡 Vérifie que PostgreSQL est démarré');
     console.error('💡 Vérifie le mot de passe dans .env');
+    if (isProduction) {
+      console.error('💡 Vérifie les variables d\'environnement sur Render');
+    }
   } else {
     console.log('✅ Connexion à PostgreSQL réussie !');
     console.log('📦 Base:', process.env.DB_NAME || 'nk_consulting_db');
