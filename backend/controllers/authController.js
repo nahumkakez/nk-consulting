@@ -5,6 +5,8 @@ const pool = require('../config/db');
 // Inscription
 const register = async (req, res) => {
   try {
+    console.log('📝 Tentative d\'inscription:', req.body.email);
+    
     const { username, email, password, company_name, company_address, company_phone } = req.body;
 
     // Vérifier si l'utilisateur existe déjà
@@ -33,11 +35,12 @@ const register = async (req, res) => {
     );
 
     const user = result.rows[0];
+    console.log('✅ Utilisateur créé:', user.email);
 
     // Créer le token JWT
     const token = jwt.sign(
       { userId: user.id, username: user.username, email: user.email },
-      process.env.JWT_SECRET,
+      process.env.JWT_SECRET || 'mon_super_secret_jwt_2026',
       { expiresIn: '7d' }
     );
 
@@ -53,14 +56,16 @@ const register = async (req, res) => {
     });
 
   } catch (error) {
-    console.error('Erreur inscription:', error);
-    res.status(500).json({ message: 'Erreur lors de l\'inscription.' });
+    console.error('❌ Erreur inscription:', error);
+    res.status(500).json({ message: 'Erreur lors de l\'inscription: ' + error.message });
   }
 };
 
 // Connexion
 const login = async (req, res) => {
   try {
+    console.log('🔑 Tentative de connexion:', req.body.email);
+
     const { email, password } = req.body;
 
     // Vérifier si l'utilisateur existe
@@ -70,6 +75,7 @@ const login = async (req, res) => {
     );
 
     if (result.rows.length === 0) {
+      console.log('❌ Utilisateur non trouvé:', email);
       return res.status(401).json({ message: 'Email ou mot de passe incorrect.' });
     }
 
@@ -78,15 +84,18 @@ const login = async (req, res) => {
     // Vérifier le mot de passe
     const isMatch = await bcrypt.compare(password, user.password_hash);
     if (!isMatch) {
+      console.log('❌ Mot de passe incorrect pour:', email);
       return res.status(401).json({ message: 'Email ou mot de passe incorrect.' });
     }
 
     // Créer le token JWT
     const token = jwt.sign(
       { userId: user.id, username: user.username, email: user.email },
-      process.env.JWT_SECRET,
+      process.env.JWT_SECRET || 'mon_super_secret_jwt_2026',
       { expiresIn: '7d' }
     );
+
+    console.log('✅ Connexion réussie pour:', email);
 
     res.json({
       message: 'Connexion réussie !',
@@ -102,14 +111,16 @@ const login = async (req, res) => {
     });
 
   } catch (error) {
-    console.error('Erreur connexion:', error);
-    res.status(500).json({ message: 'Erreur lors de la connexion.' });
+    console.error('❌ Erreur connexion:', error);
+    res.status(500).json({ message: 'Erreur lors de la connexion: ' + error.message });
   }
 };
 
-// Récupérer le profil utilisateur
+// Récupérer le profil
 const getProfile = async (req, res) => {
   try {
+    console.log('📋 Récupération profil pour user:', req.userId);
+
     const result = await pool.query(
       'SELECT id, username, email, company_name, company_address, company_phone, created_at FROM users WHERE id = $1',
       [req.userId]
@@ -119,10 +130,11 @@ const getProfile = async (req, res) => {
       return res.status(404).json({ message: 'Utilisateur non trouvé.' });
     }
 
+    console.log('✅ Profil récupéré');
     res.json(result.rows[0]);
 
   } catch (error) {
-    console.error('Erreur profil:', error);
+    console.error('❌ Erreur profil:', error);
     res.status(500).json({ message: 'Erreur lors de la récupération du profil.' });
   }
 };
